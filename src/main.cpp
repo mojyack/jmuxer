@@ -267,7 +267,6 @@ auto run(const Args& args) -> bool {
                  "room", args.from.room.data(),
                  "nick", args.from.nick.data(),
                  "receive-limit", -1,
-                 "insecure", TRUE,
                  NULL);
     unwrap_pb_mut(jitsibin_sink, add_new_element_to_pipeine(pipeline.get(), "jitsibin"));
     g_object_set(&jitsibin_sink,
