@@ -83,8 +83,6 @@ struct Participant {
 // callbacks
 struct Context {
     GstElement* pipeline;
-    GstElement* jitsibin_src;
-    GstElement* jitsibin_sink;
 
     CompositorLayouter       layouter;
     AudioMixer               mixer;
@@ -307,11 +305,9 @@ auto run() -> bool {
     assert_b(gst_element_link_pads(&audioenc, NULL, &jitsibin_sink, "audio_sink") == TRUE);
 
     auto context = Context{
-        .pipeline      = pipeline.get(),
-        .jitsibin_src  = &jitsibin_src,
-        .jitsibin_sink = &jitsibin_sink,
-        .layouter      = CompositorLayouter(&compositor),
-        .mixer         = AudioMixer(&audiomixer),
+        .pipeline = pipeline.get(),
+        .layouter = CompositorLayouter(&compositor),
+        .mixer    = AudioMixer(&audiomixer),
     };
     context.layouter.verbose = true;
 
