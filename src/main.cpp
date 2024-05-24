@@ -1,6 +1,7 @@
 #include <gst/gst.h>
 #include <gst/video/gstvideodecoder.h>
 
+#include "args.hpp"
 #include "audio-mixer.hpp"
 #include "compositor-layouter/compositor-layouter.hpp"
 #include "gstutil/pipeline-helper.hpp"
@@ -252,18 +253,6 @@ auto jitsibin_mute_state_changed_handler(
     }
 }
 
-struct Args {
-    std::string source_server;
-    std::string source_room;
-    std::string source_nick;
-    std::string sink_server;
-    std::string sink_room;
-    std::string sink_nick;
-    int         output_width;
-    int         output_height;
-    bool        insecure;
-};
-
 auto run(const Args& args) -> bool {
     const auto pipeline = AutoGstObject(gst_pipeline_new(NULL));
     assert_b(pipeline.get() != NULL);
@@ -274,26 +263,22 @@ auto run(const Args& args) -> bool {
     // create jitsibin
     unwrap_pb_mut(jitsibin_src, add_new_element_to_pipeine(pipeline.get(), "jitsibin"));
     g_object_set(&jitsibin_src,
-                 "server", args.source_server.data(),
-                 "room", args.source_room.data(),
-                 "nick", args.source_nick.data(),
-                 "insecure", args.insecure ? TRUE : FALSE,
+                 "server", args.from.server.data(),
+                 "room", args.from.room.data(),
+                 "nick", args.from.nick.data(),
                  "receive-limit", -1,
-                 "verbose", TRUE,
-                 "dump-websocket-packets", TRUE,
-                 "lws-loglevel-bitmap", 0b11,
+                 "insecure", TRUE,
                  NULL);
     unwrap_pb_mut(jitsibin_sink, add_new_element_to_pipeine(pipeline.get(), "jitsibin"));
     g_object_set(&jitsibin_sink,
-                 "server", args.sink_server.data(),
-                 "room", args.sink_room.data(),
-                 "nick", args.sink_nick.data(),
-                 "insecure", args.insecure ? TRUE : FALSE,
-                 "force-play", TRUE,
-                 "verbose", TRUE,
-                 "dump-websocket-packets", TRUE,
-                 "lws-loglevel-bitmap", 0b11,
+                 "server", args.to.server.data(),
+                 "room", args.to.room.data(),
+                 "nick", args.to.nick.data(),
                  NULL);
+    for(const auto& flag : args.debug_flags) {
+        g_object_set(&jitsibin_src, flag.data(), TRUE, NULL);
+        g_object_set(&jitsibin_sink, flag.data(), TRUE, NULL);
+    }
 
     // video elements
     unwrap_pb_mut(compositor, add_new_element_to_pipeine(pipeline.get(), "compositor"));
@@ -334,16 +319,10 @@ auto run(const Args& args) -> bool {
 auto main(int argc, char* argv[]) -> int {
     gst_init(&argc, &argv);
 
-    const auto args = Args{
-        .source_server = "jitsi.local",
-        .source_room   = "src",
-        .source_nick   = "agent-src",
-        .sink_server   = "jitsi.local",
-        .sink_room     = "sink",
-        .sink_nick     = "agent-sink",
-        .output_width  = 640,
-        .output_height = 360,
-        .insecure      = true,
-    };
-    return run(args) ? 1 : 0;
+    const auto args = parse_args(argc, argv);
+    if(!args) {
+        return 1;
+    }
+
+    return run(*args) ? 1 : 0;
 }

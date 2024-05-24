@@ -7,6 +7,7 @@ src = files(
   'src/main.cpp',
   'src/pad-name-parser.cpp',
   'src/audio-mixer.cpp',
+  'src/args.cpp',
   'src/gstutil/pipeline-helper.cpp',
   'src/compositor-layouter/compositor-layouter.cpp',
 )
