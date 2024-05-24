@@ -1,5 +1,4 @@
 #pragma once
-#include <functional>
 #include <vector>
 
 #include <gst/gst.h>
@@ -18,7 +17,7 @@ struct AudioMixer {
     std::vector<std::unique_ptr<Source>> sources;
 
     auto add_src(AutoGstObject<GstPad> upstream_pad) -> Source*;
-    auto remove_src(const Source* const source_ptr, const std::function<void(GstPad*)> pad_delete_callback) -> void;
+    auto remove_src(const Source* const source_ptr) -> void;
 
     AudioMixer(GstElement* mixer);
 };

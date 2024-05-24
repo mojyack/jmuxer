@@ -74,7 +74,7 @@ struct Participant {
         this->mixer_source = mixer_source;
     }
 
-    auto unlink_from_mixer(AudioMixer& mixer) -> void {
+    auto unlink_from_mixer() -> void {
         assert_n(gst_element_set_state(audio_converter.get(), GST_STATE_NULL) == GST_STATE_CHANGE_SUCCESS);
         assert_n(gst_element_set_state(audio_decoder.get(), GST_STATE_NULL) == GST_STATE_CHANGE_SUCCESS);
         this->mixer_source = nullptr;
@@ -100,9 +100,9 @@ struct Context {
 };
 
 auto jitsibin_pad_added_handler(
-    GstElement* const jitsibin,
-    GstPad* const     pad,
-    gpointer const    data) -> void {
+    GstElement* const /*jitsibin*/,
+    GstPad* const  pad,
+    gpointer const data) -> void {
     auto& self = *std::bit_cast<Context*>(data);
 
     const auto name_g = AutoGString(gst_object_get_name(GST_OBJECT(pad)));
@@ -178,9 +178,9 @@ auto jitsibin_pad_added_handler(
 }
 
 auto jitsibin_pad_removed_handler(
-    GstElement* const jitisbin,
-    GstPad* const     pad,
-    gpointer const    data) -> void {
+    GstElement* const /*jitisbin*/,
+    GstPad* const pad,
+    gpointer const /*data*/) -> void {
     const auto name_g = AutoGString(gst_object_get_name(GST_OBJECT(pad)));
     const auto name   = std::string_view(name_g.get());
     // we do not handle pad removal
@@ -190,7 +190,7 @@ auto jitsibin_pad_removed_handler(
 }
 
 auto jitsibin_participant_joined_handler(
-    GstElement* const  jitisbin,
+    GstElement* const /*jitisbin*/,
     const gchar* const participant_id,
     const gchar* const nick,
     gpointer const     data) -> void {
@@ -205,7 +205,7 @@ auto jitsibin_participant_joined_handler(
 }
 
 auto jitsibin_participant_left_handler(
-    GstElement* const  jitisbin,
+    GstElement* const /*jitisbin*/,
     const gchar* const participant_id,
     const gchar* const nick,
     gpointer const     data) -> void {
@@ -226,14 +226,14 @@ auto jitsibin_participant_left_handler(
         participant.unlink_from_compositor(self.layouter);
     }
     if(participant.audio_ssrc != 0) {
-        participant.unlink_from_mixer(self.mixer);
+        participant.unlink_from_mixer();
     }
 
     self.participants.erase(iter);
 }
 
 auto jitsibin_mute_state_changed_handler(
-    GstElement* const  jitisbin,
+    GstElement* const /*jitisbin*/,
     const gchar* const participant_id,
     const gboolean     is_audio,
     const gboolean     new_muted,

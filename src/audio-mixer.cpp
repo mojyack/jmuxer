@@ -23,7 +23,7 @@ auto AudioMixer::add_src(AutoGstObject<GstPad> upstream_pad) -> Source* {
     return source_ptr;
 }
 
-auto AudioMixer::remove_src(const Source* const source_ptr, const std::function<void(GstPad*)> pad_delete_callback) -> void {
+auto AudioMixer::remove_src(const Source* const source_ptr) -> void {
     auto source = std::unique_ptr<Source>();
     for(auto i = sources.begin(); i != sources.end(); i += 1) {
         if(i->get() == source_ptr) {
